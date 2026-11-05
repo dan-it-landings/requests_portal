@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Заявки Горизонт</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --navy:#13294B; --accent:#F2A541; --accent-soft:#FCEBD2;
+  --bg:#F4F6F9; --surface:#FFFFFF; --fg:#1B2433; --muted:#5B6B82; --line:#DCE2EA; --chip:#EAF0F7;
+  --good:#1F7A4D; --good-soft:#E3F3EA; --bad:#B23A48; --bad-soft:#FBE6E9; --warn:#9A5B00; --warn-soft:#FFF1D6;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --navy:#9DB7E0; --accent:#F2A541; --accent-soft:#3A2A12; --bg:#0E1622; --surface:#16212F; --fg:#E6ECF4; --muted:#9AA8BB; --line:#26354A; --chip:#1D2B3D;
+  --good:#6FD39D; --good-soft:#123326; --bad:#F08A97; --bad-soft:#3A1A20; --warn:#F2C26B; --warn-soft:#3A2C10; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --navy:#9DB7E0; --accent:#F2A541; --accent-soft:#3A2A12; --bg:#0E1622; --surface:#16212F; --fg:#E6ECF4; --muted:#9AA8BB; --line:#26354A; --chip:#1D2B3D;
+  --good:#6FD39D; --good-soft:#123326; --bad:#F08A97; --bad-soft:#3A1A20; --warn:#F2C26B; --warn-soft:#3A2C10; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 "Commissioner","Segoe UI",Arial,sans-serif;padding:20px 16px 48px}
+.wrap{max-width:980px;margin:0 auto;display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}
+h1{font:700 1.5rem/1.2 "Commissioner",sans-serif;margin:0;color:var(--navy)}
+.sub{color:var(--muted);margin:2px 0 0;font-size:.9rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+h2{font:600 1.1rem/1.3 "Commissioner",sans-serif;margin:0 0 12px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.who{display:flex;gap:10px;align-items:center;font-size:.9rem}
+.pill{font:500 .74rem/1 "JetBrains Mono",monospace;padding:5px 9px;border-radius:999px;background:var(--chip);color:var(--muted);white-space:nowrap}
+.pill.pending{background:var(--warn-soft);color:var(--warn)} .pill.ok{background:var(--good-soft);color:var(--good)} .pill.no{background:var(--bad-soft);color:var(--bad)}
+.pill.role{background:var(--accent-soft);color:var(--warn)}
+button{font:600 .9rem/1 "Commissioner",sans-serif;border-radius:8px;padding:10px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+button.primary{background:var(--navy);color:var(--surface);border-color:var(--navy)}
+button.okb{color:var(--good);border-color:var(--good)} button.nob{color:var(--bad);border-color:var(--bad)}
+button:disabled{opacity:.5;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{all:unset;cursor:pointer;padding:10px 14px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent}
+.tab[aria-selected="true"]{color:var(--navy);border-color:var(--navy)}
+.tab .n{margin-left:6px}
+label{display:grid;gap:4px;font-size:.86rem;color:var(--muted)}
+input,select,textarea{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
+textarea{min-height:90px;resize:vertical}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.form{display:grid;gap:12px;max-width:640px}
+.msg{font-size:.88rem;color:var(--muted);margin:0}
+.msg.err{color:var(--bad)} .msg.ok{color:var(--good)}
+.list{display:grid;gap:10px}
+.req{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:6px}
+.req .top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center}
+.req .t{font-weight:600}
+.req .meta{font-size:.84rem;color:var(--muted)}
+.req .desc{font-size:.92rem;overflow-wrap:anywhere}
+.req .acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:4px}
+.req .acts input{flex:1 1 220px;width:auto}
+.empty{color:var(--muted);text-align:center;padding:20px 0}
+.notice{padding:12px 14px;border-radius:10px;background:var(--warn-soft);color:var(--warn);font-size:.9rem}
+.login{display:grid;gap:14px;justify-items:start;max-width:520px}
+.demo{display:flex;gap:8px;flex-wrap:wrap}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.filters select{width:auto}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Заявки</h1>
+      <p class="sub">«Горизонт Груп» · відпустки, відрядження, закупівлі, IT-запити</p>
+    </div>
+    <div class="who" id="who" hidden>
+      <span id="whoName"></span><span class="pill role" id="whoRole"></span>
+      <button id="logout">Вийти</button>
+    </div>
+  </header>
+
+  <div class="notice" id="notice" hidden></div>
+
+  <section class="card" id="loginCard">
+    <div class="login">
+      <h2>Увійдіть, щоб подати або погодити заявку</h2>
+      <p class="msg">Вхід через Google-акаунт. Хто ви й що можете робити, визначає сервер за списком співробітників.</p>
+      <div id="gbtn"></div>
+      <div id="demoBox" hidden>
+        <p class="msg"><b>Демо-режим:</b> сервер ще не підключено, дані зберігаються лише в цій вкладці.</p>
+        <div class="demo">
+          <button data-demo="olena@horyzont.example">Увійти як Олена (працівник)</button>
+          <button data-demo="ivan@horyzont.example">Увійти як Іван (керівник)</button>
+        </div>
+      </div>
+      <p class="msg err" id="loginErr"></p>
+    </div>
+  </section>
+
+  <section class="card" id="app" hidden>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="new" aria-selected="true">Нова заявка</button>
+      <button class="tab" role="tab" data-tab="mine" aria-selected="false">Мої заявки</button>
+      <button class="tab" role="tab" data-tab="team" aria-selected="false" hidden>Підрозділ<span class="pill n" id="pendN" hidden></span></button>
+    </div>
+
+    <div id="tab-new" style="padding-top:16px">
+      <form class="form" id="newForm" novalidate>
+        <label>Тип заявки
+          <select name="type" id="fType">
+            <option>Відпустка</option><option>Відрядження</option><option>Закупівля</option><option>IT-запит</option>
+          </select>
+        </label>
+        <div class="grid2" id="fDates">
+          <label>Дата початку<input type="date" name="date_from"></label>
+          <label>Дата завершення<input type="date" name="date_to"></label>
+        </div>
+        <label id="fAmount">Сума, грн<input type="number" name="amount" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label>
+        <label>Опис<textarea name="description" maxlength="500" placeholder="Що потрібно і навіщо"></textarea></label>
+        <div class="row"><button class="primary" type="submit" id="sendBtn">Подати заявку</button><p class="msg" id="newMsg"></p></div>
+      </form>
+    </div>
+
+    <div id="tab-mine" hidden style="padding-top:16px"><div class="list" id="mineList"></div></div>
+
+    <div id="tab-team" hidden style="padding-top:16px">
+      <div class="filters">
+        <select id="teamFilter" aria-label="Фільтр за статусом">
+          <option value="На погодженні">На погодженні</option><option value="">Усі</option>
+          <option value="Погоджено">Погоджено</option><option value="Відхилено">Відхилено</option>
+        </select>
+      </div>
+      <div class="list" id="teamList"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+// ===== НАЛАШТУВАННЯ =====
+const GOOGLE_CLIENT_ID = "";   // ваш OAuth Client ID з Google Cloud (…apps.googleusercontent.com)
+const API_URL = "";            // Production URL вебхука n8n. Порожньо — демо-режим без сервера
+// ========================
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const DEMO = !API_URL;
+let credential = null, user = null, requests = [];
+
+// ---------- зв'язок із сервером ----------
+// Простий POST (form-urlencoded), щоб браузер не робив попередній CORS-запит.
+async function api(action, payload = {}) {
+  if (DEMO) return demoServer(action, payload);
+  const body = new URLSearchParams({ credential: credential || "", action, payload: JSON.stringify(payload) });
+  let res;
+  try { res = await fetch(API_URL, { method: "POST", body }); }
+  catch (e) { return { status: 0, data: { error: "network" } }; }
+  let data = {}; try { data = await res.json(); } catch (e) {}
+  return { status: res.status, data };
+}
+window.api = api; // для перевірки в консолі браузера (етап 3)
+
+// ---------- демо-сервер: ті самі правила, що в n8n ----------
+const demo = {
+  me: null,
+  people: [
+    { email: "olena@horyzont.example", name: "Олена Ткач", department: "Горизонт Логістик · Склад", role: "працівник" },
+    { email: "petro@horyzont.example", name: "Петро Савчук", department: "Горизонт Логістик · Склад", role: "працівник" },
+    { email: "ivan@horyzont.example", name: "Іван Литвин", department: "Горизонт Логістик · Склад", role: "керівник" },
+  ],
+  rows: [
+    { id: "Z-20261103-K7Q2", created_at: "2026-11-03T08:12:00Z", author_email: "petro@horyzont.example", author_name: "Петро Савчук", department: "Горизонт Логістик · Склад", type: "Закупівля", date_from: "", date_to: "", amount: 18450, description: "Сканери штрихкодів, 3 шт., для зони приймання", status: "На погодженні", approver_email: "", decided_at: "", comment: "" },
+    { id: "Z-20261028-M1AA", created_at: "2026-10-28T09:40:00Z", author_email: "olena@horyzont.example", author_name: "Олена Ткач", department: "Горизонт Логістик · Склад", type: "Відпустка", date_from: "2026-11-17", date_to: "2026-11-21", amount: "", description: "Щорічна відпустка", status: "Погоджено", approver_email: "ivan@horyzont.example", decided_at: "2026-10-29T07:30:00Z", comment: "" },
+  ],
+};
+function demoServer(action, p) {
+  const u = demo.me; if (!u) return { status: 401, data: { error: "unauthorized" } };
+  if (action === "me") return { status: 200, data: { user: u } };
+  if (action === "list") {
+    const vis = demo.rows.filter((r) => u.role === "керівник" ? r.department === u.department : r.author_email === u.email)
+      .map((r) => ({ ...r, can_decide: u.role === "керівник" && r.author_email !== u.email && r.status === "На погодженні" }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+    return { status: 200, data: { user: u, requests: vis } };
+  }
+  if (action === "create") {
+    const err = validate(p); if (err) return { status: 400, data: { error: "validation", message: err } };
+    const id = "Z-" + new Date().toISOString().slice(0, 10).replace(/-/g, "") + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
+    demo.rows.push({ id, created_at: new Date().toISOString(), author_email: u.email, author_name: u.name, department: u.department, type: p.type,
+      date_from: p.date_from || "", date_to: p.date_to || "", amount: p.amount ? +p.amount : "", description: p.description.trim(), status: "На погодженні", approver_email: "", decided_at: "", comment: "" });
+    return { status: 200, data: { ok: true, id } };
+  }
+  if (action === "decide") {
+    const r = demo.rows.find((x) => x.id === p.id);
+    if (u.role !== "керівник") return { status: 403, data: { message: "Погоджувати заявки може лише керівник" } };
+    if (!r) return { status: 404, data: { message: "Заявку не знайдено" } };
+    if (r.author_email === u.email) return { status: 403, data: { message: "Не можна погоджувати власну заявку" } };
+    if (r.status !== "На погодженні") return { status: 409, data: { message: "Заявку вже розглянуто" } };
+    if (p.decision === "reject" && String(p.comment || "").trim().length < 3) return { status: 400, data: { message: "Вкажіть причину відмови" } };
+    Object.assign(r, { status: p.decision === "approve" ? "Погоджено" : "Відхилено", approver_email: u.email, decided_at: new Date().toISOString(), comment: String(p.comment || "").trim() });
+    return { status: 200, data: { ok: true } };
+  }
+  return { status: 400, data: { error: "unknown_action" } };
+}
+
+// ---------- перевірка форми (лише для зручності; справжня — на сервері) ----------
+function validate(p) {
+  const needDates = p.type === "Відпустка" || p.type === "Відрядження";
+  if (needDates && (!p.date_from || !p.date_to)) return "Вкажіть дати початку й завершення";
+  if (needDates && p.date_to < p.date_from) return "Дата завершення раніша за дату початку";
+  if (p.type === "Закупівля" && !(+p.amount > 0)) return "Вкажіть суму закупівлі";
+  if (String(p.description || "").trim().length < 3) return "Опишіть заявку";
+  return "";
+}
+
+// ---------- вхід ----------
+function notice(t) { $("notice").hidden = !t; $("notice").textContent = t || ""; }
+function showLogin(err) {
+  user = null; credential = null;
+  $("loginCard").hidden = false; $("app").hidden = true; $("who").hidden = true;
+  $("loginErr").textContent = err || "";
+}
+async function afterLogin() {
+  const r = await api("me");
+  if (r.status === 200) { user = r.data.user; startApp(); return; }
+  if (r.status === 403) showLogin(`Акаунт ${r.data.email || ""} не має доступу. Зверніться до адміністратора списку співробітників.`);
+  else if (r.status === 0) showLogin("Сервер недоступний. Перевірте адресу API і з'єднання.");
+  else showLogin("Не вдалося підтвердити вхід. Спробуйте ще раз.");
+}
+function initGoogle() {
+  if (DEMO) { $("demoBox").hidden = false; return; }
+  if (!GOOGLE_CLIENT_ID) { $("loginErr").textContent = "Не задано GOOGLE_CLIENT_ID у налаштуваннях сторінки."; return; }
+  if (!window.google || !google.accounts) { setTimeout(initGoogle, 300); return; }
+  google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, auto_select: true,
+    callback: (resp) => { credential = resp.credential; afterLogin(); } });
+  google.accounts.id.renderButton($("gbtn"), { theme: "outline", size: "large", text: "signin_with", locale: "uk" });
+  google.accounts.id.prompt();
+}
+document.querySelectorAll("[data-demo]").forEach((b) => b.onclick = () => {
+  demo.me = demo.people.find((p) => p.email === b.dataset.demo); afterLogin();
+});
+$("logout").onclick = () => {
+  if (!DEMO && window.google && google.accounts) google.accounts.id.disableAutoSelect();
+  demo.me = null; showLogin();
+};
+
+// ---------- застосунок ----------
+function startApp() {
+  $("loginCard").hidden = true; $("app").hidden = false; $("who").hidden = false;
+  $("whoName").textContent = `${user.name} · ${user.department}`; $("whoRole").textContent = user.role;
+  document.querySelector('[data-tab="team"]').hidden = user.role !== "керівник";
+  load();
+}
+async function load() {
+  const r = await api("list");
+  if (r.status === 401) return showLogin("Сесія завершилась. Увійдіть ще раз.");
+  if (r.status !== 200) { notice("Не вдалося завантажити заявки."); return; }
+  notice(""); requests = r.data.requests || []; render();
+}
+const statusPill = (s) => `<span class="pill ${s === "Погоджено" ? "ok" : s === "Відхилено" ? "no" : "pending"}">${esc(s)}</span>`;
+const fmtDate = (d) => { const m = String(d || "").match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}.${m[2]}.${m[1]}` : String(d || ""); };
+const fmtMoney = (a) => { if (a === "" || a == null) return ""; const n = Number(a); return isNaN(n) ? String(a) + " грн" : n.toLocaleString("uk-UA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " грн"; };
+function reqCard(r, withActs) {
+  const details = [r.date_from && `${fmtDate(r.date_from)} — ${fmtDate(r.date_to)}`, fmtMoney(r.amount)].filter(Boolean).join(" · ");
+  return `<div class="req">
+    <div class="top"><span class="t">${esc(r.type)}${details ? " · " + esc(details) : ""}</span>${statusPill(r.status)}</div>
+    <div class="meta">${esc(r.id)} · ${esc(r.author_name)} · подано ${fmtDate(r.created_at)}${r.decided_at ? ` · рішення ${fmtDate(r.decided_at)}` : ""}</div>
+    <div class="desc">${esc(r.description)}</div>
+    ${r.comment ? `<div class="meta">Коментар: ${esc(r.comment)}</div>` : ""}
+    ${withActs && r.can_decide ? `<div class="acts"><input type="text" placeholder="Коментар (обов'язковий для відмови)" data-c="${esc(r.id)}" maxlength="300" aria-label="Коментар до рішення">
+      <button class="okb" data-d="approve" data-id="${esc(r.id)}">Погодити</button><button class="nob" data-d="reject" data-id="${esc(r.id)}">Відхилити</button></div>
+      <p class="msg err" data-e="${esc(r.id)}"></p>` : ""}
+  </div>`;
+}
+function render() {
+  const mine = requests.filter((r) => String(r.author_email).toLowerCase() === user.email);
+  $("mineList").innerHTML = mine.length ? mine.map((r) => reqCard(r, false)).join("") : `<p class="empty">Ви ще не подавали заявок.</p>`;
+  if (user.role === "керівник") {
+    const pend = requests.filter((r) => r.can_decide).length;
+    $("pendN").hidden = !pend; $("pendN").textContent = pend;
+    const f = $("teamFilter").value;
+    const team = requests.filter((r) => !f || r.status === f);
+    $("teamList").innerHTML = team.length ? team.map((r) => reqCard(r, true)).join("") : `<p class="empty">Заявок немає.</p>`;
+    $("teamList").querySelectorAll("[data-d]").forEach((b) => b.onclick = () => decide(b.dataset.id, b.dataset.d));
+  }
+}
+async function decide(id, decision) {
+  const comment = document.querySelector(`[data-c="${CSS.escape(id)}"]`).value;
+  const e = document.querySelector(`[data-e="${CSS.escape(id)}"]`);
+  if (decision === "reject" && comment.trim().length < 3) { e.textContent = "Вкажіть причину відмови."; return; }
+  document.querySelectorAll(`[data-id="${CSS.escape(id)}"]`).forEach((b) => b.disabled = true);
+  const r = await api("decide", { id, decision, comment });
+  if (r.status === 200) return load();
+  if (r.status === 401) return showLogin("Сесія завершилась. Увійдіть ще раз.");
+  e.textContent = r.data.message || "Не вдалося зберегти рішення.";
+  document.querySelectorAll(`[data-id="${CSS.escape(id)}"]`).forEach((b) => b.disabled = false);
+}
+function syncForm() {
+  const t = $("fType").value;
+  $("fDates").hidden = !(t === "Відпустка" || t === "Відрядження");
+  $("fAmount").hidden = !(t === "Закупівля" || t === "Відрядження");
+}
+$("fType").onchange = syncForm; syncForm();
+$("newForm").onsubmit = async (ev) => {
+  ev.preventDefault();
+  const fd = new FormData(ev.target); const t = fd.get("type");
+  const p = { type: t, description: fd.get("description") };
+  if (!$("fDates").hidden) { p.date_from = fd.get("date_from"); p.date_to = fd.get("date_to"); }
+  if (!$("fAmount").hidden) p.amount = fd.get("amount");
+  const err = validate(p); const m = $("newMsg");
+  if (err) { m.className = "msg err"; m.textContent = err; return; }
+  $("sendBtn").disabled = true; m.className = "msg"; m.textContent = "Надсилаю…";
+  const r = await api("create", p);
+  $("sendBtn").disabled = false;
+  if (r.status === 200) { m.className = "msg ok"; m.textContent = `Заявку ${r.data.id} подано. Керівник отримає повідомлення.`; ev.target.reset(); syncForm(); load(); }
+  else if (r.status === 401) showLogin("Сесія завершилась. Увійдіть ще раз.");
+  else { m.className = "msg err"; m.textContent = r.data.message || "Не вдалося подати заявку."; }
+};
+document.querySelectorAll(".tab").forEach((t) => t.onclick = () => {
+  document.querySelectorAll(".tab").forEach((x) => x.setAttribute("aria-selected", String(x === t)));
+  ["new", "mine", "team"].forEach((k) => $("tab-" + k).hidden = k !== t.dataset.tab);
+  if (t.dataset.tab !== "new") load();
+});
+$("teamFilter").onchange = render;
+initGoogle();
+</script>
+</body>
+</html>
